@@ -65,27 +65,28 @@ def determine_filetype(filepath):
         return None
 
 def process_zip_files(directory):
-    for filename in os.listdir(directory):
-        if filename.startswith("VirusShare") and filename.endswith(".zip"):
-            zip_path = os.path.join(directory, filename)
+    for root, _, files in os.walk(directory):
+        for filename in files:
+            if filename.startswith("VirusShare") and filename.endswith(".zip"):
+                zip_path = os.path.join(root, filename)
 
-            try:
-                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-                    zip_ref.extractall(pwd=b'infected')  
-                    for extracted_file in zip_ref.namelist():
-                        
-                        file_path = os.path.join(directory, extracted_file)
-                        mime_type = determine_filetype(file_path)
+                try:
+                    with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                        zip_ref.extractall(pwd=b'infected')  
+                        for extracted_file in zip_ref.namelist():
+                            
+                            file_path = os.path.join(root, extracted_file)  # Changed to use 'root'
+                            mime_type = determine_filetype(file_path)
 
-                        extension = get_extension(mime_type)
-                        if extension:
-                            extracted_filename = f"{extracted_file}{extension}"
-                            os.rename(file_path, extracted_filename)
-                            print(f"Renamed '{extracted_file}' to '{extracted_filename}'")
-                        else:
-                            print(f"No recognized file extension for '{extracted_file}' (mime type: {mime_type})")
-            except Exception as e:
-                print(f"Failed to process {filename}: {e}")
+                            extension = get_extension(mime_type)
+                            if extension:
+                                extracted_filename = f"{extracted_file}{extension}"
+                                os.rename(file_path, extracted_filename)
+                                print(f"Renamed '{extracted_file}' to '{extracted_filename}'")
+                            else:
+                                print(f"No recognized file extension for '{extracted_file}' (mime type: {mime_type})")
+                except Exception as e:
+                    print(f"Failed to process {filename}: {e}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process VirusShare ZIP files and rename extracted files based on type.')
