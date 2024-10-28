@@ -74,17 +74,22 @@ def process_zip_files(directory):
                     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                         zip_ref.extractall(pwd=b'infected')  
                         for extracted_file in zip_ref.namelist():
-                            
-                            file_path = os.path.join(root, extracted_file)  # Changed to use 'root'
-                            mime_type = determine_filetype(file_path)
+                            extracted_path = os.path.join(root, extracted_file)
+                            base_extracted_file = os.path.basename(extracted_file)
+                            full_extracted_path = os.path.join(root, base_extracted_file)
+
+                            mime_type = determine_filetype(full_extracted_path)
 
                             extension = get_extension(mime_type)
                             if extension:
-                                extracted_filename = f"{extracted_file}{extension}"
-                                os.rename(file_path, extracted_filename)
-                                print(f"Renamed '{extracted_file}' to '{extracted_filename}'")
+                                if os.path.exists(full_extracted_path):
+                                    extracted_filename = f"{base_extracted_file}{extension}"
+                                    os.rename(full_extracted_path, os.path.join(root, extracted_filename))
+                                    print(f"Renamed '{base_extracted_file}' to '{extracted_filename}'")
+                                else:
+                                    print(f"File '{full_extracted_path}' does not exist.")
                             else:
-                                print(f"No recognized file extension for '{extracted_file}' (mime type: {mime_type})")
+                                print(f"No recognized file extension for '{base_extracted_file}' (mime type: {mime_type})")
                 except Exception as e:
                     print(f"Failed to process {filename}: {e}")
 
